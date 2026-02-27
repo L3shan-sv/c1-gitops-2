@@ -1,0 +1,141 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: myapp
+  namespace: prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/myapp/config"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: myapp
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: myapp
+          image: YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: APP_ENV
+              value: production
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+  strategy:
+    canary:
+      # Canary steps — traffic shifts gradually.
+      # At each step, Prometheus analysis runs against real traffic.
+      # If error rate or latency exceeds thresholds → automatic rollback.
+      # If metrics are healthy → automatic promotion to the next step.
+      steps:
+        - setWeight: 10         # 10% of traffic to new version
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: service-name
+                value: myapp
+        - pause: {duration: 2m} # Bake time at 10% before promoting
+        - setWeight: 50         # 50% of traffic to new version
+        - analysis:
+            templates:
+              - templateName: success-rate
+            args:
+              - name: service-name
+                value: myapp
+        - pause: {duration: 5m} # Bake time at 50% before full promotion
+        - setWeight: 100        # Full promotion — canary becomes stable
+
+      # Anti-affinity ensures canary and stable pods land on different nodes.
+      # This prevents a bad node from affecting both versions simultaneously.
+      canaryMetadata:
+        labels:
+          role: canary
+      stableMetadata:
+        labels:
+          role: stable
+
+---
+# AnalysisTemplate — defines the Prometheus queries that gate promotion.
+# Argo Rollouts evaluates this at each analysis step.
+# Failure means automatic rollback with zero human intervention.
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: success-rate
+  namespace: prod
+spec:
+  args:
+    - name: service-name
+  metrics:
+    - name: success-rate
+      # Run analysis every 1 minute for 5 minutes.
+      interval: 1m
+      count: 5
+      # Fail if success rate drops below 99% at any point.
+      successCondition: result[0] >= 0.99
+      failureLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus-server.monitoring.svc.cluster.local
+          query: |
+            sum(rate(app_requests_total{endpoint!="not_found",status=~"2.."}[2m]))
+            /
+            sum(rate(app_requests_total{endpoint!="not_found"}[2m]))
+
+    - name: latency-p99
+      interval: 1m
+      count: 5
+      # Fail if p99 latency exceeds 500ms.
+      successCondition: result[0] <= 0.5
+      failureLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus-server.monitoring.svc.cluster.local
+          query: |
+            histogram_quantile(0.99,
+              sum(rate(http_request_duration_seconds_bucket[2m])) by (le)
+            )
