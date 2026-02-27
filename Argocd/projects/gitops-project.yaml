@@ -1,0 +1,55 @@
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: gitops-demo
+  namespace: argocd
+spec:
+  description: GitOps demo project — all environments
+
+  # Only this deploy repo is a valid source.
+  # ArgoCD will reject any application that tries to sync from a different repo.
+  sourceRepos:
+    - https://github.com/your-org/gitops-demo-deploy
+
+  # Only these destination clusters and namespaces are allowed.
+  # Applications in this project cannot deploy to arbitrary namespaces.
+  destinations:
+    - namespace: dev
+      server: https://kubernetes.default.svc
+    - namespace: staging
+      server: https://kubernetes.default.svc
+    - namespace: prod
+      server: https://kubernetes.default.svc
+
+  # Cluster-scoped resources that this project's apps are allowed to manage.
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  # Namespace-scoped resources allowed.
+  namespaceResourceWhitelist:
+    - group: "apps"
+      kind: Deployment
+    - group: "argoproj.io"
+      kind: Rollout
+    - group: "autoscaling"
+      kind: HorizontalPodAutoscaler
+    - group: "networking.k8s.io"
+      kind: Ingress
+    - group: "networking.k8s.io"
+      kind: NetworkPolicy
+    - group: "policy"
+      kind: PodDisruptionBudget
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: ""
+      kind: ConfigMap
+
+  # Orphaned resource monitoring — alerts when resources exist in the namespace
+  # that are not managed by any ArgoCD application.
+  orphanedResources:
+    warn: true
