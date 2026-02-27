@@ -1,0 +1,44 @@
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-prod
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: gitops-demo
+
+  source:
+    repoURL: https://github.com/your-org/gitops-demo-deploy
+    targetRevision: HEAD
+    path: k8s/overlays/prod
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: prod
+
+  syncPolicy:
+    # Production sync is NOT automated.
+    # A human must approve the sync in the ArgoCD UI or via CLI.
+    # This creates an audit trail: who approved, when, from which Git SHA.
+    # Once approved, Argo Rollouts handles the canary strategy automatically.
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 2
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 2m
+
+  # ignoreDifferences prevents ArgoCD from flagging the Rollout's
+  # live replica count as drift — Argo Rollouts manages replicas dynamically.
+  ignoreDifferences:
+    - group: argoproj.io
+      kind: Rollout
+      jsonPointers:
+        - /spec/replicas
