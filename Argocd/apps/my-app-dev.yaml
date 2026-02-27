@@ -1,0 +1,40 @@
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: myapp-dev
+  namespace: argocd
+  # Finalizer ensures ArgoCD cleans up all managed resources
+  # when this Application is deleted — no orphaned resources left behind.
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: gitops-demo
+
+  source:
+    repoURL: https://github.com/your-org/gitops-demo-deploy
+    targetRevision: HEAD
+    # Points at the dev Kustomize overlay.
+    # ArgoCD renders this overlay and applies the resulting manifests.
+    path: k8s/overlays/dev
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
+
+  syncPolicy:
+    automated:
+      # Automatically sync when ArgoCD detects drift between
+      # the Git state and the live cluster state.
+      prune: true       # Delete resources removed from Git
+      selfHeal: true    # Re-apply if someone manually changes the cluster
+    syncOptions:
+      - CreateNamespace=true   # Create the namespace if it doesn't exist
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
