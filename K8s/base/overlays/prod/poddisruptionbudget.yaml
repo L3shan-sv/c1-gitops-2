@@ -1,0 +1,15 @@
+
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: myapp
+  namespace: prod
+spec:
+  # At least 2 pods must remain available during voluntary disruptions
+  # such as node drains, cluster upgrades, or Karpenter consolidation.
+  # This prevents the entire application going down during maintenance.
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: myapp
