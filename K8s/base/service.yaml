@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  labels:
+    app: myapp
+spec:
+  # ClusterIP exposes the service only within the cluster.
+  # External traffic enters via the Ingress → ALB, not directly to the service.
+  type: ClusterIP
+  selector:
+    app: myapp
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
