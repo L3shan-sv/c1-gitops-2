@@ -1,0 +1,26 @@
+
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: argocd-image-updater
+  namespace: argocd
+  annotations:
+    # ArgoCD Image Updater watches ECR for new image tags.
+    # When a new tag appears, it commits the updated tag to the deploy repo.
+    # This removes the need for Jenkins to commit back to the deploy repo —
+    # a cleaner separation between CI and CD.
+    argocd-image-updater.argoproj.io/image-list: myapp=YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/myapp
+    argocd-image-updater.argoproj.io/myapp.update-strategy: latest
+    argocd-image-updater.argoproj.io/myapp.allow-tags: regexp:^[0-9a-f]{7}$
+    argocd-image-updater.argoproj.io/write-back-method: git
+    argocd-image-updater.argoproj.io/git-branch: main
+spec:
+  project: gitops-demo
+  source:
+    repoURL: https://github.com/your-org/gitops-demo-deploy
+    targetRevision: HEAD
+    path: k8s/overlays/dev
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: dev
