@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: myapp
+  labels:
+    app: myapp
+    managed-by: argocd
+spec:
+  # Replicas are overridden per environment via Kustomize overlays.
+  # Base value is 1 — the lowest common denominator.
+  replicas: 1
+  selector:
+    matchLabels:
+      app: myapp
+  template:
+    metadata:
+      labels:
+        app: myapp
+      annotations:
+        # Vault sidecar injector annotations.
+        # Secrets are injected as files at pod start — never in env vars or manifests.
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/role: "myapp"
+        vault.hashicorp.com/agent-inject-secret-config: "secret/data/myapp/config"
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "8080"
+        prometheus.io/path: "/metrics"
+    spec:
+      # ServiceAccount is bound to an IAM role via IRSA.
+      # No static AWS credentials anywhere.
+      serviceAccountName: myapp
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+        - name: myapp
+          # Image tag is managed by ArgoCD Image Updater — updated automatically
+          # when a new signed image lands in ECR. Never hardcoded to 'latest'.
+          image: YOUR_ACCOUNT.dkr.ecr.us-east-1.amazonaws.com/myapp:latest
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+          env:
+            - name: PORT
+              value: "8080"
+            - name: APP_ENV
+              # Overridden per environment in Kustomize overlays
+              value: base
+          # Resource requests and limits are required by OPA Gatekeeper policy.
+          # Requests determine scheduling. Limits prevent noisy-neighbour issues.
+          # Values are overridden per environment.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+          # Liveness probe: Kubernetes restarts the pod if this fails 3 times.
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+            failureThreshold: 3
+          # Readiness probe: pod only receives traffic when this passes.
+          # Prevents traffic being sent to a pod that is starting up or degraded.
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
