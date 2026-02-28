@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dora-dashboard
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "true"
+data:
+  dora-dashboard.json: |
+    # Dashboard JSON is loaded from the dashboards/ directory at build time.
+    # See grafana/dashboards/dora-dashboard.json for the full dashboard definition.
+    # The Grafana provisioning sidecar picks this up automatically.
