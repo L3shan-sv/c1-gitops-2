@@ -1,0 +1,232 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s       # How often Prometheus scrapes each target
+      evaluation_interval: 15s   # How often rules are evaluated
+      scrape_timeout: 10s
+
+    # AlertManager connection — where to send firing alerts
+    alerting:
+      alertmanagers:
+        - static_configs:
+            - targets:
+                - alertmanager:9093
+
+    # Load alerting and recording rules from these files
+    rule_files:
+      - /etc/prometheus/rules/*.yml
+
+    scrape_configs:
+
+      # ── Prometheus self-monitoring ─────────────────────────────────────────
+      - job_name: prometheus
+        static_configs:
+          - targets: ["localhost:9090"]
+
+      # ── Application pods ───────────────────────────────────────────────────
+      # Scrapes any pod that has prometheus.io/scrape: "true" annotation.
+      # The annotation-based approach means no config change is needed
+      # when new services are added — they self-register by adding annotations.
+      - job_name: kubernetes-pods
+        kubernetes_sd_configs:
+          - role: pod
+        relabel_configs:
+          # Only scrape pods with prometheus.io/scrape: "true"
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_scrape]
+            action: keep
+            regex: "true"
+          # Use prometheus.io/path annotation for the metrics path (default: /metrics)
+          - source_labels: [__meta_kubernetes_pod_annotation_prometheus_io_path]
+            action: replace
+            target_label: __metrics_path__
+            regex: (.+)
+          # Use prometheus.io/port annotation for the scrape port
+          - source_labels: [__address__, __meta_kubernetes_pod_annotation_prometheus_io_port]
+            action: replace
+            regex: ([^:]+)(?::\d+)?;(\d+)
+            replacement: $1:$2
+            target_label: __address__
+          # Attach namespace label to every metric
+          - source_labels: [__meta_kubernetes_namespace]
+            action: replace
+            target_label: namespace
+          # Attach pod name label
+          - source_labels: [__meta_kubernetes_pod_name]
+            action: replace
+            target_label: pod
+          # Attach app label from pod labels
+          - source_labels: [__meta_kubernetes_pod_label_app]
+            action: replace
+            target_label: app
+
+      # ── Kubernetes nodes ───────────────────────────────────────────────────
+      # Scrapes kubelet metrics including resource usage per pod.
+      - job_name: kubernetes-nodes
+        scheme: https
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # ── cAdvisor — container resource metrics ──────────────────────────────
+      # CPU, memory, network per container. Used by Grafana dashboards
+      # and by Argo Rollouts AnalysisTemplates to gate canary promotion.
+      - job_name: kubernetes-cadvisor
+        scheme: https
+        metrics_path: /metrics/cadvisor
+        tls_config:
+          ca_file: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+          insecure_skip_verify: true
+        bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+        kubernetes_sd_configs:
+          - role: node
+        relabel_configs:
+          - action: labelmap
+            regex: __meta_kubernetes_node_label_(.+)
+
+      # ── ArgoCD metrics ─────────────────────────────────────────────────────
+      # ArgoCD exposes metrics on port 8083.
+      # Tracks sync status, health status, and operation durations.
+      # Used in Grafana DORA dashboard for deployment frequency.
+      - job_name: argocd
+        static_configs:
+          - targets:
+              - argocd-metrics.argocd.svc.cluster.local:8083
+              - argocd-server-metrics.argocd.svc.cluster.local:8083
+              - argocd-repo-server.argocd.svc.cluster.local:8084
+
+      # ── Jenkins metrics ────────────────────────────────────────────────────
+      # Jenkins Prometheus plugin exposes pipeline metrics.
+      # Tracks build duration, failure rate — inputs to DORA lead time metric.
+      - job_name: jenkins
+        metrics_path: /prometheus
+        static_configs:
+          - targets:
+              - jenkins.jenkins.svc.cluster.local:8080
+
+  # ── Alerting Rules ─────────────────────────────────────────────────────────
+  alerts.yml: |
+    groups:
+
+      - name: application
+        rules:
+
+          # High error rate — more than 1% of requests failing
+          - alert: HighErrorRate
+            expr: |
+              sum(rate(app_requests_total{endpoint="not_found"}[5m]))
+              /
+              sum(rate(app_requests_total[5m])) > 0.01
+            for: 2m
+            labels:
+              severity: critical
+            annotations:
+              summary: "High error rate on {{ $labels.namespace }}"
+              description: "Error rate is {{ $value | humanizePercentage }} over the last 5 minutes."
+
+          # High latency — p99 above 500ms
+          - alert: HighLatencyP99
+            expr: |
+              histogram_quantile(0.99,
+                sum(rate(http_request_duration_seconds_bucket[5m])) by (le, namespace)
+              ) > 0.5
+            for: 2m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High p99 latency in {{ $labels.namespace }}"
+              description: "p99 latency is {{ $value }}s — threshold is 0.5s."
+
+          # Pod crash looping
+          - alert: PodCrashLooping
+            expr: |
+              rate(kube_pod_container_status_restarts_total[15m]) * 60 * 15 > 0
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Pod crash looping: {{ $labels.pod }}"
+              description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} is restarting frequently."
+
+          # Pod not ready
+          - alert: PodNotReady
+            expr: |
+              kube_pod_status_ready{condition="true"} == 0
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "Pod not ready: {{ $labels.pod }}"
+              description: "Pod {{ $labels.pod }} in {{ $labels.namespace }} has not been ready for 5 minutes."
+
+      - name: infrastructure
+        rules:
+
+          # Node CPU high
+          - alert: NodeCPUHigh
+            expr: |
+              100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High CPU on node {{ $labels.instance }}"
+              description: "CPU usage is {{ $value }}% — consider scaling the node group."
+
+          # Node memory high
+          - alert: NodeMemoryHigh
+            expr: |
+              (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes)
+              / node_memory_MemTotal_bytes * 100 > 85
+            for: 5m
+            labels:
+              severity: warning
+            annotations:
+              summary: "High memory on node {{ $labels.instance }}"
+              description: "Memory usage is {{ $value }}%."
+
+      - name: deployment
+        rules:
+
+          # ArgoCD application out of sync for too long
+          - alert: ArgoCDAppOutOfSync
+            expr: |
+              argocd_app_info{sync_status="OutOfSync"} == 1
+            for: 10m
+            labels:
+              severity: warning
+            annotations:
+              summary: "ArgoCD app out of sync: {{ $labels.name }}"
+              description: "Application {{ $labels.name }} has been out of sync for 10 minutes."
+
+          # ArgoCD application degraded
+          - alert: ArgoCDAppDegraded
+            expr: |
+              argocd_app_info{health_status="Degraded"} == 1
+            for: 5m
+            labels:
+              severity: critical
+            annotations:
+              summary: "ArgoCD app degraded: {{ $labels.name }}"
+              description: "Application {{ $labels.name }} health is Degraded."
+
+          # Argo Rollout aborted — canary was rolled back
+          - alert: RolloutAborted
+            expr: |
+              argocd_rollout_info{phase="Aborted"} == 1
+            for: 1m
+            labels:
+              severity: critical
+            annotations:
+              summary: "Rollout aborted in {{ $labels.namespace }}"
+              description: "A canary rollout was aborted — automatic rollback has occurred."
