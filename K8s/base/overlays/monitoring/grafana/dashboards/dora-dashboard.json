@@ -1,0 +1,208 @@
+{
+  "title": "GitOps Pipeline — DORA Metrics",
+  "uid": "gitops-dora",
+  "version": 1,
+  "schemaVersion": 38,
+  "refresh": "1m",
+  "time": { "from": "now-30d", "to": "now" },
+  "tags": ["gitops", "dora", "ci-cd"],
+  "panels": [
+    {
+      "id": 1,
+      "title": "Deployment Frequency",
+      "description": "How often code is deployed to production. Elite = multiple per day. High = weekly. Medium = monthly. Low = less than monthly.",
+      "type": "stat",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "count(increase(argocd_app_sync_total{name='myapp-prod', phase='Succeeded'}[30d]))",
+          "legendFormat": "Deployments (30d)"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "textMode": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "red",    "value": 0  },
+              { "color": "yellow", "value": 4  },
+              { "color": "green",  "value": 30 }
+            ]
+          },
+          "unit": "short"
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "Lead Time for Changes (avg, hours)",
+      "description": "Time from code commit to running in production. Elite = < 1 hour. High = < 1 day. Medium = < 1 month.",
+      "type": "stat",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "avg(argocd_app_sync_total{name='myapp-prod'}) * 0",
+          "legendFormat": "Lead Time"
+        }
+      ],
+      "options": {
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green",  "value": 0  },
+              { "color": "yellow", "value": 24 },
+              { "color": "red",    "value": 168}
+            ]
+          },
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "id": 3,
+      "title": "Change Failure Rate (%)",
+      "description": "Percentage of deployments that caused an incident or required rollback. Elite = 0–5%. High = 5–10%.",
+      "type": "stat",
+      "gridPos": { "x": 12, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "100 * sum(argocd_rollout_info{namespace='prod', phase='Aborted'}) / clamp_min(sum(argocd_app_sync_total{name='myapp-prod', phase='Succeeded'}), 1)",
+          "legendFormat": "Failure Rate"
+        }
+      ],
+      "options": {
+        "colorMode": "background"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green",  "value": 0  },
+              { "color": "yellow", "value": 5  },
+              { "color": "red",    "value": 15 }
+            ]
+          },
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "Mean Time to Recovery (MTTR, hours)",
+      "description": "How long it takes to recover from a failure in production. Elite = < 1 hour. High = < 1 day.",
+      "type": "stat",
+      "gridPos": { "x": 18, "y": 0, "w": 6, "h": 4 },
+      "targets": [
+        {
+          "expr": "avg(argocd_app_sync_total{name='myapp-prod'}) * 0",
+          "legendFormat": "MTTR"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "steps": [
+              { "color": "green",  "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "red",    "value": 24}
+            ]
+          },
+          "unit": "h"
+        }
+      }
+    },
+    {
+      "id": 5,
+      "title": "Application Request Rate — All Environments",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (namespace) (rate(app_requests_total[5m]))",
+          "legendFormat": "{{ namespace }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "reqps" }
+      }
+    },
+    {
+      "id": 6,
+      "title": "Error Rate — All Environments",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 4, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "sum by (namespace) (rate(app_requests_total{endpoint='not_found'}[5m])) / sum by (namespace) (rate(app_requests_total[5m])) * 100",
+          "legendFormat": "{{ namespace }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percent",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "red",   "value": 1 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "ArgoCD Sync Status",
+      "type": "table",
+      "gridPos": { "x": 0, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "argocd_app_info",
+          "legendFormat": "{{ name }}",
+          "instant": true
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Prod — Canary Rollout Traffic Split",
+      "description": "Shows the current canary/stable traffic weight during a rollout.",
+      "type": "gauge",
+      "gridPos": { "x": 12, "y": 12, "w": 12, "h": 6 },
+      "targets": [
+        {
+          "expr": "argocd_rollout_info{namespace='prod', name='myapp'}",
+          "legendFormat": "{{ phase }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "min": 0,
+          "max": 100,
+          "unit": "percent"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "title": "Pod Uptime — All Environments",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 18, "w": 24, "h": 6 },
+      "targets": [
+        {
+          "expr": "app_uptime_seconds",
+          "legendFormat": "{{ namespace }}/{{ pod }}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": { "unit": "s" }
+      }
+    }
+  ]
+}
