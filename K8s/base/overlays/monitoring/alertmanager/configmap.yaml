@@ -1,0 +1,117 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager-config
+  namespace: monitoring
+data:
+  alertmanager.yml: |
+    global:
+      # How long to wait before re-sending a resolved alert
+      resolve_timeout: 5m
+      # Slack API URL — stored in Vault, injected via sidecar at runtime.
+      # This value is a placeholder — the actual URL never lives in Git.
+      slack_api_url: "INJECTED_BY_VAULT"
+
+    # ── Routing Tree ────────────────────────────────────────────────────────
+    # Alerts flow through this tree from top to bottom.
+    # The first matching route wins.
+    route:
+      # Default receiver for alerts that don't match any specific route
+      receiver: slack-general
+      # Group alerts by these labels before sending — prevents alert storms
+      group_by: ["alertname", "namespace", "severity"]
+      # Wait this long to collect alerts before sending the first notification
+      group_wait: 30s
+      # Wait this long before sending a notification about new alerts in an existing group
+      group_interval: 5m
+      # Wait this long before resending a notification for an alert that is still firing
+      repeat_interval: 4h
+
+      routes:
+        # Critical alerts page on-call immediately via PagerDuty
+        - match:
+            severity: critical
+          receiver: pagerduty-oncall
+          group_wait: 10s
+          repeat_interval: 1h
+          continue: true  # Also send to Slack after PagerDuty
+
+        # Rollout aborted — highest priority, wakes someone up immediately
+        - match:
+            alertname: RolloutAborted
+          receiver: pagerduty-oncall
+          group_wait: 0s
+          repeat_interval: 30m
+
+        # ArgoCD degraded — high priority but not always on-call worthy
+        - match:
+            alertname: ArgoCDAppDegraded
+          receiver: slack-deployments
+          repeat_interval: 30m
+
+        # Warning severity — Slack only, no page
+        - match:
+            severity: warning
+          receiver: slack-general
+          repeat_interval: 6h
+
+    # ── Inhibition Rules ────────────────────────────────────────────────────
+    # Suppress less severe alerts when a more severe one is already firing
+    # for the same thing. Prevents alert noise during incidents.
+    inhibit_rules:
+      - source_match:
+          severity: critical
+        target_match:
+          severity: warning
+        equal: ["namespace", "app"]
+
+    # ── Receivers ───────────────────────────────────────────────────────────
+    receivers:
+
+      - name: slack-general
+        slack_configs:
+          - channel: "#alerts"
+            send_resolved: true
+            title: |
+              {{ if eq .Status "firing" }}🔴{{ else }}✅{{ end }}
+              [{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}
+            text: |
+              {{ range .Alerts }}
+              *Alert:* {{ .Annotations.summary }}
+              *Namespace:* {{ .Labels.namespace }}
+              *Severity:* {{ .Labels.severity }}
+              *Description:* {{ .Annotations.description }}
+              {{ end }}
+
+      - name: slack-deployments
+        slack_configs:
+          - channel: "#deployments"
+            send_resolved: true
+            title: |
+              {{ if eq .Status "firing" }}🚨{{ else }}✅{{ end }}
+              [{{ .Status | toUpper }}] {{ .GroupLabels.alertname }}
+            text: |
+              {{ range .Alerts }}
+              *Alert:* {{ .Annotations.summary }}
+              *Description:* {{ .Annotations.description }}
+              {{ end }}
+
+      - name: pagerduty-oncall
+        pagerduty_configs:
+          # PagerDuty integration key — injected from Vault at runtime
+          - routing_key: "INJECTED_BY_VAULT"
+            description: "{{ .GroupLabels.alertname }}: {{ .CommonAnnotations.summary }}"
+            severity: "{{ .CommonLabels.severity }}"
+            details:
+              namespace: "{{ .CommonLabels.namespace }}"
+              description: "{{ .CommonAnnotations.description }}"
+        # Also notify Slack for visibility
+        slack_configs:
+          - channel: "#incidents"
+            send_resolved: true
+            title: "🚨 PAGED: {{ .GroupLabels.alertname }}"
+            text: |
+              {{ range .Alerts }}
+              *{{ .Annotations.summary }}*
+              {{ .Annotations.description }}
+              {{ end }}
