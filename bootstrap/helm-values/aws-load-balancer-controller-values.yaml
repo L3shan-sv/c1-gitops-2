@@ -1,0 +1,35 @@
+# bootstrap/helm-values/aws-load-balancer-controller-values.yaml
+# Helm values for AWS Load Balancer Controller (chart: eks/aws-load-balancer-controller)
+# Install:
+#   helm repo add eks https://aws.github.io/eks-charts
+#   helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller \
+#     --namespace kube-system \
+#     --values bootstrap/helm-values/aws-load-balancer-controller-values.yaml \
+#     --wait
+#
+# PREREQUISITES (handled by terraform/modules/iam):
+#   1. IRSA role with the AWS managed policy AmazonEKSLoadBalancingPolicy attached
+#   2. The ServiceAccount annotation pointing at that role ARN
+#      (the IAM module outputs this ARN as alb_controller_role_arn)
+
+# Replace with your actual cluster name — this must match the EKS cluster name
+# in terraform/environments/<env>/main.tf
+clusterName: gitops-demo-dev   # override per environment
+
+replicaCount: 2
+
+serviceAccount:
+  create: true
+  name: aws-load-balancer-controller
+  annotations:
+    # Populated by Terraform output — paste the IRSA role ARN here
+    eks.amazonaws.com/role-arn: "arn:aws:iam::ACCOUNT_ID:role/alb-controller-irsa-CLUSTER_NAME"
+
+region: eu-west-1    # override to your AWS region
+
+vpcId: ""            # populated from terraform output vpc_id — required
+
+# Enable shield and WAF integration if you have those services
+enableShield: false
+enableWaf: false
+enableWafv2: false
