@@ -1,0 +1,83 @@
+# k8s/policies/cosign-constraint-template.yaml
+#
+# Defines the CRD (ConstraintTemplate) that teaches Gatekeeper how to verify
+# Cosign image signatures. The companion Constraint (cosign-constraint.yaml)
+# activates enforcement for specific namespaces.
+#
+# Apply order: ConstraintTemplate FIRST, then Constraint.
+# Gatekeeper must be Running before applying either.
+apiVersion: templates.gatekeeper.sh/v1
+kind: ConstraintTemplate
+metadata:
+  name: requirecosignsignature
+  annotations:
+    description: >
+      Requires all container images to carry a valid Cosign signature
+      from the trusted public key. Unsigned or tampered images are rejected
+      at admission time.
+spec:
+  crd:
+    spec:
+      names:
+        kind: RequireCosignSignature
+      validation:
+        openAPIV3Schema:
+          type: object
+          properties:
+            publicKey:
+              type: string
+              description: >
+                Base64-encoded PEM public key used to verify signatures.
+                Corresponds to the key used by Jenkins (cosign sign) in the CI pipeline.
+            registryPrefix:
+              type: string
+              description: >
+                Only images whose reference starts with this prefix are
+                subject to verification. Images from other registries
+                (e.g. init containers from gcr.io) are passed through.
+
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package requirecosignsignature
+
+        import future.keywords.if
+        import future.keywords.in
+
+        # Collect all containers across init, regular, and ephemeral
+        all_containers[container] {
+          container := input.review.object.spec.containers[_]
+        }
+        all_containers[container] {
+          container := input.review.object.spec.initContainers[_]
+        }
+        all_containers[container] {
+          container := input.review.object.spec.ephemeralContainers[_]
+        }
+
+        # An image is in-scope if its reference starts with the registryPrefix
+        in_scope(image) if {
+          startswith(image, input.parameters.registryPrefix)
+        }
+
+        # Deny if any in-scope image has no verified Cosign annotation
+        deny[msg] {
+          container := all_containers[_]
+          in_scope(container.image)
+          not verified(container.image)
+          msg := sprintf(
+            "Image %v must be signed with Cosign. Run: cosign verify --key <pub.pem> %v",
+            [container.image, container.image]
+          )
+        }
+
+        # An image is verified when the admission controller has injected the
+        # cosign.sigstore.dev/imageRef annotation (set by the Cosign admission
+        # webhook / policy-controller sidecar). If you use the standalone
+        # policy-controller instead of this Rego rule, remove this template
+        # and configure policy-controller ClusterImagePolicy directly.
+        verified(image) if {
+          annotations := input.review.object.metadata.annotations
+          annotation_key := "cosign.sigstore.dev/imageRef"
+          annotations[annotation_key] == image
+        }
