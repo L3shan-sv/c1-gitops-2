@@ -1,0 +1,80 @@
+<svg width="900" height="520" viewBox="0 0 900 520" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+
+  <text x="450" y="26" font-size="14" font-weight="500" fill="#2C2C2A" text-anchor="middle">Kustomize overlay structure</text>
+
+  <!-- Base -->
+  <rect x="280" y="44" width="340" height="190" rx="10" fill="#E6F1FB" stroke="#85B7EB" stroke-width="1"/>
+  <text x="450" y="66" font-size="12" font-weight="500" fill="#0C447C" text-anchor="middle">k8s/base/</text>
+  <text x="450" y="82" font-size="10" fill="#185FA5" text-anchor="middle">shared across all environments — never env-specific logic</text>
+
+  <rect x="296" y="92" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="370" y="110" font-size="10" fill="#0C447C" text-anchor="middle">deployment.yaml</text>
+  <rect x="296" y="126" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="370" y="144" font-size="10" fill="#0C447C" text-anchor="middle">service.yaml</text>
+  <rect x="296" y="160" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="370" y="178" font-size="10" fill="#0C447C" text-anchor="middle">ingress.yaml</text>
+  <rect x="296" y="194" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="370" y="212" font-size="10" fill="#0C447C" text-anchor="middle">hpa.yaml</text>
+
+  <rect x="456" y="92" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="530" y="110" font-size="10" fill="#0C447C" text-anchor="middle">serviceaccount.yaml</text>
+  <rect x="456" y="126" width="148" height="28" rx="4" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="530" y="144" font-size="10" fill="#0C447C" text-anchor="middle">analysis-template.yaml</text>
+  <rect x="456" y="160" width="148" height="28" rx="4" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="530" y="178" font-size="10" fill="#26215C" text-anchor="middle">kustomization.yaml</text>
+  <text x="530" y="190" font-size="9" fill="#534AB7" text-anchor="middle">lists all resources</text>
+
+  <!-- Arrows from base to overlays -->
+  <line x1="340" y1="234" x2="165" y2="294" stroke="#888780" stroke-width="1" stroke-dasharray="4 2"/>
+  <line x1="430" y1="234" x2="430" y2="294" stroke="#888780" stroke-width="1" stroke-dasharray="4 2"/>
+  <line x1="540" y1="234" x2="720" y2="294" stroke="#888780" stroke-width="1" stroke-dasharray="4 2"/>
+  <text x="175" y="275" font-size="10" fill="#888780">../../base</text>
+  <text x="395" y="280" font-size="10" fill="#888780">../../base</text>
+  <text x="600" y="275" font-size="10" fill="#888780">../../base</text>
+
+  <!-- Dev overlay -->
+  <rect x="30" y="296" width="270" height="190" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="165" y="318" font-size="12" font-weight="500" fill="#412402" text-anchor="middle">k8s/overlays/dev/</text>
+  <rect x="46" y="326" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="165" y="342" font-size="10" fill="#412402" text-anchor="middle">replicas: 1</text>
+  <rect x="46" y="356" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="165" y="372" font-size="10" fill="#412402" text-anchor="middle">host: dev.myapp.example.com</text>
+  <rect x="46" y="386" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="165" y="402" font-size="10" fill="#412402" text-anchor="middle">node: t3.medium</text>
+  <rect x="46" y="416" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="165" y="432" font-size="10" fill="#412402" text-anchor="middle">HPA: min 1 max 3</text>
+  <rect x="46" y="446" width="238" height="30" rx="4" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="165" y="463" font-size="10" fill="#26215C" text-anchor="middle">image: myapp:&lt;sha&gt;</text>
+  <text x="165" y="475" font-size="9" fill="#534AB7" text-anchor="middle">written by Image Updater</text>
+
+  <!-- Staging overlay -->
+  <rect x="315" y="296" width="270" height="190" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="450" y="318" font-size="12" font-weight="500" fill="#412402" text-anchor="middle">k8s/overlays/staging/</text>
+  <rect x="331" y="326" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="450" y="342" font-size="10" fill="#412402" text-anchor="middle">replicas: 2</text>
+  <rect x="331" y="356" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="450" y="372" font-size="10" fill="#412402" text-anchor="middle">host: staging.myapp.example.com</text>
+  <rect x="331" y="386" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="450" y="402" font-size="10" fill="#412402" text-anchor="middle">HPA: min 2 max 5</text>
+  <rect x="331" y="416" width="238" height="24" rx="4" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text x="450" y="432" font-size="10" fill="#27500A" text-anchor="middle">+ poddisruptionbudget.yaml (NEW)</text>
+  <rect x="331" y="446" width="238" height="30" rx="4" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="450" y="463" font-size="10" fill="#26215C" text-anchor="middle">minAvailable: 1</text>
+  <text x="450" y="475" font-size="9" fill="#534AB7" text-anchor="middle">protects node drain scenarios</text>
+
+  <!-- Prod overlay -->
+  <rect x="600" y="296" width="270" height="190" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="735" y="318" font-size="12" font-weight="500" fill="#412402" text-anchor="middle">k8s/overlays/prod/</text>
+  <rect x="616" y="326" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="735" y="342" font-size="10" fill="#412402" text-anchor="middle">replicas: 3 (HPA min)</text>
+  <rect x="616" y="356" width="238" height="24" rx="4" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="735" y="372" font-size="10" fill="#412402" text-anchor="middle">host: myapp.example.com · m5.large</text>
+  <rect x="616" y="386" width="238" height="24" rx="4" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text x="735" y="402" font-size="10" fill="#712B13" text-anchor="middle">+ rollout.yaml (replaces Deployment)</text>
+  <rect x="616" y="416" width="238" height="24" rx="4" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text x="735" y="432" font-size="10" fill="#712B13" text-anchor="middle">+ networkpolicy.yaml</text>
+  <rect x="616" y="446" width="238" height="24" rx="4" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text x="735" y="462" font-size="10" fill="#712B13" text-anchor="middle">+ poddisruptionbudget.yaml (min: 2)</text>
+
+  <text x="450" y="508" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle">Kustomize — base holds shared YAML, overlays patch only what differs per environment</text>
+</svg>
