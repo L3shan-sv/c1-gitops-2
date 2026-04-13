@@ -62,3 +62,12 @@ variable "aws_region" {
   type    = string
   default = "ap-southest-2"
 }
+module "vault" {
+  source = "../../modules/vault"
+
+  environment       = "dev"                        # or staging / prod
+  aws_region        = "eu-west-1"                  # your region
+  oidc_provider_arn = module.eks.oidc_provider_arn # from eks module output
+  oidc_provider_url = module.eks.oidc_provider_url # from eks module output
+  replicas          = 1                            # 1=dev, 3=staging/prod
+}
