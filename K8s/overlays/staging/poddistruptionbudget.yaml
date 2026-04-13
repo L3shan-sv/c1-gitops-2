@@ -1,0 +1,19 @@
+# k8s/overlays/staging/poddisruptionbudget.yaml
+#
+# Ensures at least 1 pod is available during voluntary disruptions in staging.
+# Without this, a node drain on a 2-replica staging deployment can briefly
+# take the app to zero replicas (both pods on the same node being drained
+# simultaneously is possible with only 2 replicas and no PDB).
+#
+# minAvailable: 1 (not 2) because staging only runs 2 replicas — requiring 2
+# available would make node drains impossible.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: myapp-pdb
+  namespace: staging
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: myapp
