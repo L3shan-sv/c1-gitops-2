@@ -1,0 +1,112 @@
+<svg width="900" height="540" viewBox="0 0 900 540" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#7F77DD" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#639922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#BA7517" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="450" y="26" font-size="14" font-weight="500" fill="#2C2C2A" text-anchor="middle">ArgoCD GitOps sync flow</text>
+
+  <!-- CI Repo (gitops-demo-app) -->
+  <rect x="30" y="50" width="180" height="80" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="120" y="74" font-size="12" font-weight="500" fill="#444441" text-anchor="middle">gitops-demo-app</text>
+  <text x="120" y="92" font-size="10" fill="#5F5E5A" text-anchor="middle">Jenkins CI pipeline</text>
+  <text x="120" y="106" font-size="10" fill="#5F5E5A" text-anchor="middle">build · test · sign · push</text>
+  <text x="120" y="120" font-size="10" fill="#5F5E5A" text-anchor="middle">myapp:a3f2c1b → ECR</text>
+
+  <!-- ECR -->
+  <rect x="270" y="60" width="150" height="60" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <text x="345" y="84" font-size="12" font-weight="500" fill="#0C447C" text-anchor="middle">Amazon ECR</text>
+  <text x="345" y="102" font-size="10" fill="#185FA5" text-anchor="middle">immutable tags</text>
+
+  <!-- Image Updater -->
+  <rect x="480" y="50" width="180" height="80" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text x="570" y="74" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle">ArgoCD Image Updater</text>
+  <text x="570" y="92" font-size="10" fill="#534AB7" text-anchor="middle">polls ECR every 2 min</text>
+  <text x="570" y="106" font-size="10" fill="#534AB7" text-anchor="middle">matches ^[0-9a-f]{7}$</text>
+  <text x="570" y="120" font-size="10" fill="#534AB7" text-anchor="middle">IRSA: ECR read only</text>
+
+  <!-- Deploy repo -->
+  <rect x="720" y="50" width="155" height="80" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="797" y="74" font-size="12" font-weight="500" fill="#085041" text-anchor="middle">gitops-demo-deploy</text>
+  <text x="797" y="92" font-size="10" fill="#0F6E56" text-anchor="middle">source of truth</text>
+  <text x="797" y="106" font-size="10" fill="#0F6E56" text-anchor="middle">overlays/dev/kustomization</text>
+  <text x="797" y="120" font-size="10" fill="#0F6E56" text-anchor="middle">image: myapp:a3f2c1b</text>
+
+  <!-- ArgoCD app controller -->
+  <rect x="560" y="200" width="200" height="80" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text x="660" y="224" font-size="12" font-weight="500" fill="#3C3489" text-anchor="middle">ArgoCD app-controller</text>
+  <text x="660" y="242" font-size="10" fill="#534AB7" text-anchor="middle">polls Git every 3 min</text>
+  <text x="660" y="258" font-size="10" fill="#534AB7" text-anchor="middle">detects OutOfSync state</text>
+  <text x="660" y="272" font-size="10" fill="#534AB7" text-anchor="middle">computes diff</text>
+
+  <!-- Manual gate -->
+  <rect x="330" y="210" width="180" height="60" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <text x="420" y="234" font-size="12" font-weight="500" fill="#712B13" text-anchor="middle">Manual gate (prod)</text>
+  <text x="420" y="252" font-size="10" fill="#993C1D" text-anchor="middle">Human reviews diff in UI</text>
+  <text x="420" y="266" font-size="10" fill="#993C1D" text-anchor="middle">clicks Sync → audit logged</text>
+
+  <!-- Dev/staging auto -->
+  <rect x="90" y="210" width="180" height="60" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text x="180" y="234" font-size="12" font-weight="500" fill="#3B6D11" text-anchor="middle">Auto-sync</text>
+  <text x="180" y="252" font-size="10" fill="#3B6D11" text-anchor="middle">dev + staging</text>
+  <text x="180" y="266" font-size="10" fill="#3B6D11" text-anchor="middle">selfHeal + prune</text>
+
+  <!-- K8s cluster -->
+  <rect x="30" y="360" width="840" height="130" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="50" y="382" font-size="11" font-weight="500" fill="#412402">Kubernetes cluster</text>
+
+  <rect x="50" y="390" width="190" height="88" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="145" y="410" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">dev namespace</text>
+  <text x="145" y="428" font-size="10" fill="#633806" text-anchor="middle">rolling update applied</text>
+  <text x="145" y="444" font-size="10" fill="#633806" text-anchor="middle">ArgoCD: Synced/Healthy</text>
+  <text x="145" y="460" font-size="10" fill="#633806" text-anchor="middle">1 replica · t3.medium</text>
+  <text x="145" y="472" font-size="10" fill="#633806" text-anchor="middle">auto-pruned on removal</text>
+
+  <rect x="256" y="390" width="190" height="88" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="351" y="410" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">staging namespace</text>
+  <text x="351" y="428" font-size="10" fill="#633806" text-anchor="middle">rolling update applied</text>
+  <text x="351" y="444" font-size="10" fill="#633806" text-anchor="middle">ArgoCD: Synced/Healthy</text>
+  <text x="351" y="460" font-size="10" fill="#633806" text-anchor="middle">2 replicas · PDB active</text>
+  <text x="351" y="472" font-size="10" fill="#633806" text-anchor="middle">auto-pruned on removal</text>
+
+  <rect x="462" y="390" width="200" height="88" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="562" y="410" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">prod namespace</text>
+  <text x="562" y="428" font-size="10" fill="#633806" text-anchor="middle">Argo Rollouts canary</text>
+  <text x="562" y="444" font-size="10" fill="#633806" text-anchor="middle">10% → analysis → 50% → 100%</text>
+  <text x="562" y="460" font-size="10" fill="#633806" text-anchor="middle">auto-rollback on metric fail</text>
+  <text x="562" y="472" font-size="10" fill="#633806" text-anchor="middle">PDB minAvailable: 2</text>
+
+  <rect x="678" y="390" width="175" height="88" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="765" y="410" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">ArgoCD project scope</text>
+  <text x="765" y="428" font-size="10" fill="#633806" text-anchor="middle">source: this repo only</text>
+  <text x="765" y="444" font-size="10" fill="#633806" text-anchor="middle">dest: dev/staging/prod ns</text>
+  <text x="765" y="460" font-size="10" fill="#633806" text-anchor="middle">resource whitelist enforced</text>
+  <text x="765" y="472" font-size="10" fill="#633806" text-anchor="middle">orphan detection on</text>
+
+  <!-- Arrows -->
+  <line x1="210" y1="90" x2="268" y2="90" stroke="#888780" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <line x1="420" y1="90" x2="478" y2="90" stroke="#7F77DD" stroke-width="1.2" fill="none" marker-end="url(#arr-purple)"/>
+  <text x="449" y="83" font-size="10" fill="#534AB7" text-anchor="middle">polls</text>
+  <line x1="660" y1="130" x2="797" y2="130" stroke="#7F77DD" stroke-width="1.2" fill="none" marker-end="url(#arr-purple)"/>
+  <text x="728" y="145" font-size="10" fill="#534AB7" text-anchor="middle">git commit + push</text>
+  <line x1="797" y1="130" x2="660" y2="198" stroke="#7F77DD" stroke-width="1.2" fill="none" marker-end="url(#arr-purple)"/>
+  <text x="744" y="168" font-size="10" fill="#534AB7" text-anchor="middle">detected</text>
+  <path d="M560 240 L510 240" stroke="#7F77DD" stroke-width="1.2" fill="none" marker-end="url(#arr-purple)"/>
+  <path d="M660 280 L180 358" stroke="#639922" stroke-width="1.2" fill="none" marker-end="url(#arr-green)"/>
+  <text x="380" y="335" font-size="10" fill="#3B6D11" text-anchor="middle">auto-sync: dev + staging</text>
+  <path d="M420 270 L420 358" stroke="#D85A30" stroke-width="1.2" fill="none" marker-end="url(#arr)"/>
+  <text x="432" y="318" font-size="10" fill="#993C1D">approve</text>
+  <path d="M420 270 L562 358" stroke="#D85A30" stroke-width="1.2" fill="none" stroke-dasharray="4 2" marker-end="url(#arr)"/>
+
+  <text x="450" y="516" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle">ArgoCD sync flow — Image Updater commit triggers dev/staging auto-sync and prod manual gate</text>
+</svg>
