@@ -1,0 +1,21 @@
+# bootstrap/helm-values/argo-rollouts-values.yaml
+# Helm values for Argo Rollouts (chart: argo/argo-rollouts)
+# Install:
+#   helm upgrade --install argo-rollouts argo/argo-rollouts \
+#     --namespace argo-rollouts --create-namespace \
+#     --values bootstrap/helm-values/argo-rollouts-values.yaml \
+#     --wait
+
+controller:
+  replicas: 2    # HA; 1 is fine for dev
+
+dashboard:
+  # Exposes the Rollouts UI — port-forward in dev, ALB in prod
+  enabled: true
+  service:
+    type: ClusterIP
+    port: 3100
+
+# The controller needs RBAC to read AnalysisTemplates and write Rollout status.
+# The default serviceAccount created by this chart is sufficient — do not
+# restrict it without testing canary analysis still works.
