@@ -1,0 +1,68 @@
+# bootstrap/helm-values/argocd-values.yaml
+# Helm values for ArgoCD (chart: argo/argo-cd, tested against 6.x)
+# Install:
+#   helm repo add argo https://argoproj.github.io/argo-helm
+#   helm upgrade --install argocd argo/argo-cd \
+#     --namespace argocd --create-namespace \
+#     --values bootstrap/helm-values/argocd-values.yaml \
+#     --wait
+
+global:
+  # Image tag is pinned — bump deliberately, never use latest in prod
+  image:
+    tag: "v2.10.5"
+
+server:
+  replicas: 2          # HA — single replica is fine for dev
+  autoscaling:
+    enabled: false
+
+  ingress:
+    enabled: false     # We port-forward locally; add ALB ingress here if you want
+                       # a permanent URL for the ArgoCD UI.
+
+  config:
+    # Prevent ArgoCD from syncing resources not in the project whitelist
+    resource.exclusions: |
+      - apiGroups: ["*"]
+        kinds: ["Event"]
+        clusters: ["*"]
+
+    # Argo Rollouts: tell ArgoCD not to manage replica count on Rollout objects
+    # (Rollouts controller owns replicas during canary)
+    resource.customizations.ignoreDifferences.argoproj.io_Rollout: |
+      jqPathExpressions:
+        - '.spec.replicas'
+
+  rbacConfig:
+    # policy.default must be role:readonly — no anonymous write access
+    policy.default: role:readonly
+    policy.csv: |
+      p, role:deployer, applications, sync,    */*, allow
+      p, role:deployer, applications, get,     */*, allow
+      g, deploy-team,   role:deployer
+
+repoServer:
+  replicas: 2
+
+applicationSet:
+  replicas: 2
+
+redis:
+  # Use redis-ha for staging/prod; single replica is fine for dev
+  enabled: true
+
+configs:
+  # Repositories are registered here OR via the argocd-image-updater-secret.
+  # Git credentials for Image Updater are in a separate secret — see
+  # bootstrap/scripts/02-image-updater-secret.sh
+  repositories: {}
+
+  params:
+    # Force HTTPS on the API server
+    server.insecure: false
+
+notifications:
+  enabled: true
+  # Slack and PagerDuty tokens come from Vault — mount them as env vars
+  # or patch this section per environment.
