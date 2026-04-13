@@ -1,0 +1,31 @@
+# bootstrap/helm-values/gatekeeper-values.yaml
+# Helm values for OPA Gatekeeper (chart: gatekeeper/gatekeeper)
+# Install:
+#   helm repo add gatekeeper https://open-policy-agent.github.io/gatekeeper/charts
+#   helm upgrade --install gatekeeper gatekeeper/gatekeeper \
+#     --namespace gatekeeper-system --create-namespace \
+#     --values bootstrap/helm-values/gatekeeper-values.yaml \
+#     --wait
+#
+# IMPORTANT: Apply k8s/policies/ AFTER Gatekeeper is Running.
+# Applying ConstraintTemplates before the webhook is Ready causes
+# admission failures on unrelated namespaces.
+
+replicaCount: 3     # 1 for dev is fine; 3 for staging/prod
+
+auditInterval: 60   # seconds between full cluster audit scans
+
+# Exempt the gatekeeper-system namespace itself from admission checks —
+# without this a bad constraint can prevent Gatekeeper from self-healing.
+exemptNamespaces:
+  - gatekeeper-system
+  - kube-system
+
+# Fail-open during rollouts so a Gatekeeper crash doesn't block all pod
+# scheduling. Switch to Fail for mature prod environments once policies are
+# stable and you're confident in Gatekeeper HA.
+webhook:
+  failurePolicy: Ignore   # change to Fail once stable
+
+mutations:
+  enable: false   # we don't use mutation webhooks
