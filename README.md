@@ -1,4 +1,4 @@
-# gitops-demo-deploy
+# gitops-deploy
 
 > CD and infrastructure repository for the GitOps pipeline. This is the source of truth for everything running in the cluster.
 
@@ -9,7 +9,7 @@ ArgoCD watches this repository continuously and reconciles the cluster to match.
 ## Repository structure
 
 ```
-gitops-demo-deploy/
+gitops-deploy/
 │
 ├── argocd/
 │   ├── apps/

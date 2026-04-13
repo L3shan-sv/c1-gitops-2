@@ -1,0 +1,237 @@
+<svg viewBox="0 0 1100 1100" xmlns="http://www.w3.org/2000/svg" font-family="'Segoe UI', Arial, sans-serif">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d1117"/>
+      <stop offset="100%" style="stop-color:#161b22"/>
+    </linearGradient>
+    <pattern id="dots" width="30" height="30" patternUnits="userSpaceOnUse">
+      <circle cx="1.5" cy="1.5" r="1" fill="#1e2d3d" opacity="0.5"/>
+    </pattern>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.5"/>
+    </filter>
+    <marker id="aP" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#a855f7"/>
+    </marker>
+    <marker id="aG" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#00ff88"/>
+    </marker>
+    <marker id="aB" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#00d4ff"/>
+    </marker>
+    <marker id="aY" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#fbbf24"/>
+    </marker>
+    <marker id="aO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+      <polygon points="0 0,8 3,0 6" fill="#ff6b35"/>
+    </marker>
+  </defs>
+
+  <rect width="1100" height="1100" fill="url(#bg)"/>
+  <rect width="1100" height="1100" fill="url(#dots)"/>
+
+  <!-- Header -->
+  <rect x="30" y="20" width="1040" height="68" rx="10" fill="#0d1a26" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="30" y="20" width="1040" height="4" rx="2" fill="#a855f7"/>
+  <text x="550" y="54" text-anchor="middle" font-size="22" font-weight="700" fill="#fff">CD + Infrastructure — gitops-demo-deploy</text>
+  <text x="550" y="74" text-anchor="middle" font-size="10" fill="#a855f7" letter-spacing="3" font-family="monospace">ARGOCD · KUSTOMIZE · ARGO ROLLOUTS · VAULT · TERRAFORM · PROMETHEUS</text>
+
+  <!-- ECR -->
+  <rect x="380" y="108" width="340" height="56" rx="8" fill="#0d1a26" stroke="#00d4ff" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="550" y="133" text-anchor="middle" font-size="13" font-weight="700" fill="#00d4ff">Amazon ECR</text>
+  <text x="550" y="151" text-anchor="middle" font-size="9" fill="#8b949e" font-family="monospace">myapp:a3f2c1b  ← signed image lands here from CI</text>
+
+  <!-- Arrow ECR → Image Updater -->
+  <line x1="550" y1="164" x2="550" y2="195" stroke="#a855f7" stroke-width="2" marker-end="url(#aP)"/>
+  <text x="560" y="183" font-size="8" fill="#8b949e" font-family="monospace">Image Updater polls</text>
+
+  <!-- Image Updater -->
+  <rect x="330" y="198" width="440" height="52" rx="8" fill="#0d1a26" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow)"/>
+  <text x="550" y="222" text-anchor="middle" font-size="12" font-weight="700" fill="#a855f7">ArgoCD Image Updater</text>
+  <text x="550" y="238" text-anchor="middle" font-size="9" fill="#8b949e">detects new SHA tag → commits updated image tag to deploy repo</text>
+
+  <!-- Arrow Updater → Deploy Repo -->
+  <line x1="550" y1="250" x2="550" y2="281" stroke="#a855f7" stroke-width="2" marker-end="url(#aP)"/>
+  <text x="560" y="269" font-size="8" fill="#8b949e" font-family="monospace">git commit + push</text>
+
+  <!-- Deploy Repo -->
+  <rect x="100" y="284" width="900" height="118" rx="10" fill="#0d1a26" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="100" y="284" width="900" height="4" rx="1" fill="#a855f7"/>
+  <text x="550" y="308" text-anchor="middle" font-size="13" font-weight="700" fill="#a855f7">GitHub — gitops-demo-deploy  (Source of Truth)</text>
+
+  <rect x="120" y="318" width="200" height="72" rx="6" fill="#0d1117" stroke="#1e2d3d"/>
+  <text x="220" y="337" text-anchor="middle" font-size="10" font-weight="600" fill="#00ff88">k8s/</text>
+  <text x="220" y="352" text-anchor="middle" font-size="8" fill="#8b949e">base/ — shared manifests</text>
+  <text x="220" y="365" text-anchor="middle" font-size="8" fill="#00d4ff">overlays/dev/</text>
+  <text x="220" y="378" text-anchor="middle" font-size="8" fill="#fbbf24">overlays/staging/</text>
+  <text x="220" y="390" text-anchor="middle" font-size="8" fill="#00ff88">overlays/prod/ + rollout</text>
+
+  <rect x="340" y="318" width="200" height="72" rx="6" fill="#0d1117" stroke="#1e2d3d"/>
+  <text x="440" y="337" text-anchor="middle" font-size="10" font-weight="600" fill="#a855f7">argocd/</text>
+  <text x="440" y="352" text-anchor="middle" font-size="8" fill="#8b949e">projects/ — scope limits</text>
+  <text x="440" y="365" text-anchor="middle" font-size="8" fill="#8b949e">apps/ — 3 Applications</text>
+  <text x="440" y="378" text-anchor="middle" font-size="8" fill="#8b949e">appsets/ — image updater</text>
+
+  <rect x="560" y="318" width="200" height="72" rx="6" fill="#0d1117" stroke="#1e2d3d"/>
+  <text x="660" y="337" text-anchor="middle" font-size="10" font-weight="600" fill="#7c3aed">terraform/</text>
+  <text x="660" y="352" text-anchor="middle" font-size="8" fill="#8b949e">modules/ vpc,eks,ecr,iam,vault</text>
+  <text x="660" y="365" text-anchor="middle" font-size="8" fill="#8b949e">environments/dev/</text>
+  <text x="660" y="378" text-anchor="middle" font-size="8" fill="#8b949e">environments/staging/</text>
+  <text x="660" y="390" text-anchor="middle" font-size="8" fill="#8b949e">environments/prod/</text>
+
+  <rect x="780" y="318" width="200" height="72" rx="6" fill="#0d1117" stroke="#1e2d3d"/>
+  <text x="880" y="337" text-anchor="middle" font-size="10" font-weight="600" fill="#ff6b35">Atlantis</text>
+  <text x="880" y="352" text-anchor="middle" font-size="8" fill="#8b949e">PR → terraform plan</text>
+  <text x="880" y="365" text-anchor="middle" font-size="8" fill="#8b949e">plan posted as comment</text>
+  <text x="880" y="378" text-anchor="middle" font-size="8" fill="#8b949e">atlantis apply on approve</text>
+  <text x="880" y="390" text-anchor="middle" font-size="8" fill="#ff6b35">no manual tf apply</text>
+
+  <!-- Arrow Deploy Repo → ArgoCD -->
+  <line x1="550" y1="402" x2="550" y2="432" stroke="#a855f7" stroke-width="2" marker-end="url(#aP)"/>
+  <text x="560" y="420" font-size="8" fill="#8b949e" font-family="monospace">ArgoCD detects drift</text>
+
+  <!-- ArgoCD zone -->
+  <rect x="60" y="435" width="980" height="148" rx="10" fill="#12181f" stroke="#a855f7" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="435" width="980" height="4" rx="1" fill="#a855f7"/>
+  <text x="550" y="458" text-anchor="middle" font-size="13" font-weight="700" fill="#a855f7">ArgoCD — Continuous Delivery</text>
+
+  <rect x="78" y="470" width="290" height="100" rx="6" fill="#0d1117" stroke="#00d4ff" stroke-width="1"/>
+  <text x="223" y="490" text-anchor="middle" font-size="11" font-weight="700" fill="#00d4ff">myapp-dev</text>
+  <text x="223" y="506" text-anchor="middle" font-size="8" fill="#8b949e">watches: k8s/overlays/dev</text>
+  <text x="223" y="520" text-anchor="middle" font-size="8" fill="#00d4ff">sync: automatic</text>
+  <text x="223" y="534" text-anchor="middle" font-size="8" fill="#8b949e">selfHeal: true · prune: true</text>
+  <text x="223" y="548" text-anchor="middle" font-size="8" fill="#8b949e">replicas: 1 · t3.medium</text>
+  <text x="223" y="562" text-anchor="middle" font-size="7" fill="#00d4ff" font-family="monospace">auto-deploy on every merge</text>
+
+  <rect x="405" y="470" width="290" height="100" rx="6" fill="#0d1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="550" y="490" text-anchor="middle" font-size="11" font-weight="700" fill="#fbbf24">myapp-staging</text>
+  <text x="550" y="506" text-anchor="middle" font-size="8" fill="#8b949e">watches: k8s/overlays/staging</text>
+  <text x="550" y="520" text-anchor="middle" font-size="8" fill="#fbbf24">sync: automatic</text>
+  <text x="550" y="534" text-anchor="middle" font-size="8" fill="#8b949e">selfHeal: true · prune: true</text>
+  <text x="550" y="548" text-anchor="middle" font-size="8" fill="#8b949e">replicas: 2 · HPA: 2–5</text>
+  <text x="550" y="562" text-anchor="middle" font-size="7" fill="#fbbf24" font-family="monospace">auto-deploy after dev health</text>
+
+  <rect x="732" y="470" width="290" height="100" rx="6" fill="#0d1117" stroke="#00ff88" stroke-width="1.2"/>
+  <text x="877" y="490" text-anchor="middle" font-size="11" font-weight="700" fill="#00ff88">myapp-prod</text>
+  <text x="877" y="506" text-anchor="middle" font-size="8" fill="#8b949e">watches: k8s/overlays/prod</text>
+  <text x="877" y="520" text-anchor="middle" font-size="8" fill="#00ff88">sync: MANUAL GATE ✓</text>
+  <text x="877" y="534" text-anchor="middle" font-size="8" fill="#8b949e">selfHeal: true · prune: true</text>
+  <text x="877" y="548" text-anchor="middle" font-size="8" fill="#8b949e">replicas: 3+ · HPA: 3–10</text>
+  <text x="877" y="562" text-anchor="middle" font-size="7" fill="#00ff88" font-family="monospace">Argo Rollouts canary on sync</text>
+
+  <!-- Arrows ArgoCD → K8s -->
+  <line x1="223" y1="583" x2="223" y2="613" stroke="#00d4ff" stroke-width="2" marker-end="url(#aB)"/>
+  <line x1="550" y1="583" x2="550" y2="613" stroke="#fbbf24" stroke-width="2" marker-end="url(#aY)"/>
+  <line x1="877" y1="583" x2="877" y2="613" stroke="#00ff88" stroke-width="2" marker-end="url(#aG)"/>
+
+  <!-- K8s EKS zone -->
+  <rect x="60" y="616" width="980" height="240" rx="10" fill="#12181f" stroke="#00ff88" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="616" width="980" height="4" rx="1" fill="#00ff88"/>
+  <text x="550" y="638" text-anchor="middle" font-size="13" font-weight="700" fill="#00ff88">Kubernetes — Amazon EKS</text>
+
+  <!-- dev namespace -->
+  <rect x="78" y="650" width="290" height="192" rx="6" fill="#0d1117" stroke="#00d4ff" stroke-width="1"/>
+  <text x="223" y="670" text-anchor="middle" font-size="10" font-weight="700" fill="#00d4ff">namespace: dev</text>
+  <rect x="92" y="680" width="125" height="52" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="154" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#00d4ff">Deployment</text>
+  <text x="154" y="712" text-anchor="middle" font-size="7" fill="#8b949e">rolling update</text>
+  <text x="154" y="724" text-anchor="middle" font-size="7" fill="#8b949e">health probes</text>
+  <rect x="231" y="680" width="125" height="52" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="293" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#00d4ff">Service + ALB</text>
+  <text x="293" y="712" text-anchor="middle" font-size="7" fill="#8b949e">ClusterIP</text>
+  <text x="293" y="724" text-anchor="middle" font-size="7" fill="#8b949e">TLS via ACM</text>
+  <rect x="92" y="742" width="264" height="88" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="224" y="760" text-anchor="middle" font-size="8" font-weight="600" fill="#00d4ff">Vault Sidecar Injection</text>
+  <text x="224" y="774" text-anchor="middle" font-size="7" fill="#8b949e">secrets injected as files at pod start</text>
+  <text x="224" y="787" text-anchor="middle" font-size="7" fill="#8b949e">never in env vars or manifests</text>
+  <text x="224" y="800" text-anchor="middle" font-size="7" fill="#8b949e">IRSA for AWS service auth</text>
+  <text x="224" y="813" text-anchor="middle" font-size="7" fill="#8b949e">auto-renewed before expiry</text>
+
+  <!-- staging namespace -->
+  <rect x="405" y="650" width="290" height="192" rx="6" fill="#0d1117" stroke="#fbbf24" stroke-width="1"/>
+  <text x="550" y="670" text-anchor="middle" font-size="10" font-weight="700" fill="#fbbf24">namespace: staging</text>
+  <rect x="419" y="680" width="125" height="52" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="481" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#fbbf24">Deployment</text>
+  <text x="481" y="712" text-anchor="middle" font-size="7" fill="#8b949e">rolling update</text>
+  <text x="481" y="724" text-anchor="middle" font-size="7" fill="#8b949e">health probes</text>
+  <rect x="558" y="680" width="125" height="52" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="620" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#fbbf24">HPA</text>
+  <text x="620" y="712" text-anchor="middle" font-size="7" fill="#8b949e">cpu: 70% · mem: 80%</text>
+  <text x="620" y="724" text-anchor="middle" font-size="7" fill="#8b949e">min:2 max:5</text>
+  <rect x="419" y="742" width="264" height="88" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="551" y="760" text-anchor="middle" font-size="8" font-weight="600" fill="#fbbf24">NetworkPolicy</text>
+  <text x="551" y="774" text-anchor="middle" font-size="7" fill="#8b949e">ingress: ALB only + Prometheus</text>
+  <text x="551" y="787" text-anchor="middle" font-size="7" fill="#8b949e">egress: DNS + HTTPS only</text>
+  <text x="551" y="800" text-anchor="middle" font-size="7" fill="#8b949e">namespace isolation enforced</text>
+
+  <!-- prod namespace -->
+  <rect x="732" y="650" width="290" height="192" rx="6" fill="#0d1117" stroke="#00ff88" stroke-width="1.2"/>
+  <text x="877" y="670" text-anchor="middle" font-size="10" font-weight="700" fill="#00ff88">namespace: prod</text>
+  <rect x="746" y="680" width="130" height="150" rx="4" fill="#161b22" stroke="#00ff88" stroke-width="0.8"/>
+  <text x="811" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#00ff88">Argo Rollouts</text>
+  <text x="811" y="712" text-anchor="middle" font-size="7" fill="#fbbf24">10% canary</text>
+  <text x="811" y="724" text-anchor="middle" font-size="7" fill="#8b949e">↓ Prometheus analysis</text>
+  <text x="811" y="736" text-anchor="middle" font-size="7" fill="#00ff88">success rate ≥ 99%</text>
+  <text x="811" y="748" text-anchor="middle" font-size="7" fill="#00ff88">p99 latency ≤ 500ms</text>
+  <text x="811" y="760" text-anchor="middle" font-size="7" fill="#8b949e">↓ 50% → 100%</text>
+  <text x="811" y="772" text-anchor="middle" font-size="7" fill="#ff6b35">fail → auto rollback</text>
+  <text x="811" y="786" text-anchor="middle" font-size="7" fill="#00ff88">zero downtime</text>
+  <rect x="888" y="680" width="122" height="150" rx="4" fill="#161b22" stroke="#1e2d3d"/>
+  <text x="949" y="698" text-anchor="middle" font-size="8" font-weight="600" fill="#00ff88">PDB + Policies</text>
+  <text x="949" y="712" text-anchor="middle" font-size="7" fill="#8b949e">minAvailable: 2</text>
+  <text x="949" y="724" text-anchor="middle" font-size="7" fill="#8b949e">OPA Gatekeeper</text>
+  <text x="949" y="736" text-anchor="middle" font-size="7" fill="#8b949e">no root containers</text>
+  <text x="949" y="748" text-anchor="middle" font-size="7" fill="#8b949e">ECR images only</text>
+  <text x="949" y="760" text-anchor="middle" font-size="7" fill="#8b949e">resource limits req.</text>
+  <text x="949" y="772" text-anchor="middle" font-size="7" fill="#8b949e">cosign verified</text>
+
+  <!-- Arrow K8s → Observability -->
+  <line x1="550" y1="856" x2="550" y2="882" stroke="#ff6b35" stroke-width="2" marker-end="url(#aO)"/>
+
+  <!-- Observability -->
+  <rect x="60" y="885" width="980" height="100" rx="10" fill="#12181f" stroke="#ff6b35" stroke-width="1.5" filter="url(#shadow)"/>
+  <rect x="60" y="885" width="980" height="4" rx="1" fill="#ff6b35"/>
+  <text x="550" y="908" text-anchor="middle" font-size="12" font-weight="700" fill="#ff6b35">Observability — Prometheus · Grafana · OpenTelemetry · Fluent Bit</text>
+  <text x="180" y="930" text-anchor="middle" font-size="8" fill="#ff6b35">Prometheus</text>
+  <text x="180" y="944" text-anchor="middle" font-size="7" fill="#8b949e">scrapes all pods · 15s interval</text>
+  <text x="180" y="956" text-anchor="middle" font-size="7" fill="#8b949e">ArgoCD + Jenkins metrics</text>
+  <text x="380" y="930" text-anchor="middle" font-size="8" fill="#ff6b35">Grafana</text>
+  <text x="380" y="944" text-anchor="middle" font-size="7" fill="#8b949e">DORA metrics dashboard</text>
+  <text x="380" y="956" text-anchor="middle" font-size="7" fill="#8b949e">deploy freq · lead time · MTTR</text>
+  <text x="580" y="930" text-anchor="middle" font-size="8" fill="#ff6b35">AlertManager</text>
+  <text x="580" y="944" text-anchor="middle" font-size="7" fill="#8b949e">SLO burn rate alerts</text>
+  <text x="580" y="956" text-anchor="middle" font-size="7" fill="#8b949e">PagerDuty + Slack routing</text>
+  <text x="780" y="930" text-anchor="middle" font-size="8" fill="#ff6b35">OpenTelemetry</text>
+  <text x="780" y="944" text-anchor="middle" font-size="7" fill="#8b949e">distributed tracing</text>
+  <text x="780" y="956" text-anchor="middle" font-size="7" fill="#8b949e">end-to-end request visibility</text>
+  <text x="975" y="930" text-anchor="middle" font-size="8" fill="#ff6b35">Fluent Bit</text>
+  <text x="975" y="944" text-anchor="middle" font-size="7" fill="#8b949e">log collection</text>
+  <text x="975" y="956" text-anchor="middle" font-size="7" fill="#8b949e">stdout → CloudWatch</text>
+  <line x1="280" y1="912" x2="280" y2="970" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="480" y1="912" x2="480" y2="970" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="680" y1="912" x2="680" y2="970" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="880" y1="912" x2="880" y2="970" stroke="#1e2d3d" stroke-width="1"/>
+
+  <!-- Footer -->
+  <rect x="60" y="995" width="980" height="90" rx="8" fill="#0d1a26" stroke="#1e2d3d"/>
+  <text x="550" y="1015" text-anchor="middle" font-size="10" font-weight="600" fill="#7c3aed">Terraform Infrastructure (Atlantis PR-based apply)</text>
+  <text x="180" y="1035" text-anchor="middle" font-size="8" fill="#7c3aed">module: vpc</text>
+  <text x="180" y="1049" text-anchor="middle" font-size="7" fill="#8b949e">3-AZ · public + private</text>
+  <text x="180" y="1062" text-anchor="middle" font-size="7" fill="#8b949e">NAT · Route Tables</text>
+  <text x="360" y="1035" text-anchor="middle" font-size="8" fill="#7c3aed">module: eks</text>
+  <text x="360" y="1049" text-anchor="middle" font-size="7" fill="#8b949e">managed node groups</text>
+  <text x="360" y="1062" text-anchor="middle" font-size="7" fill="#8b949e">IRSA · OIDC · addons</text>
+  <text x="540" y="1035" text-anchor="middle" font-size="8" fill="#7c3aed">module: iam</text>
+  <text x="540" y="1049" text-anchor="middle" font-size="7" fill="#8b949e">IRSA roles for all pods</text>
+  <text x="540" y="1062" text-anchor="middle" font-size="7" fill="#8b949e">least privilege enforced</text>
+  <text x="720" y="1035" text-anchor="middle" font-size="8" fill="#7c3aed">module: ecr</text>
+  <text x="720" y="1049" text-anchor="middle" font-size="7" fill="#8b949e">immutable tags</text>
+  <text x="720" y="1062" text-anchor="middle" font-size="7" fill="#8b949e">lifecycle: keep last 30</text>
+  <text x="900" y="1035" text-anchor="middle" font-size="8" fill="#7c3aed">module: vault</text>
+  <text x="900" y="1049" text-anchor="middle" font-size="7" fill="#8b949e">K8s auth backend</text>
+  <text x="900" y="1062" text-anchor="middle" font-size="7" fill="#8b949e">sidecar injection</text>
+  <line x1="270" y1="1020" x2="270" y2="1075" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="450" y1="1020" x2="450" y2="1075" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="630" y1="1020" x2="630" y2="1075" stroke="#1e2d3d" stroke-width="1"/>
+  <line x1="810" y1="1020" x2="810" y2="1075" stroke="#1e2d3d" stroke-width="1"/>
+</svg>
