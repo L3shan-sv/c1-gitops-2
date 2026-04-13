@@ -1,0 +1,11 @@
+# k8s/base/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+  - ingress.yaml
+  - hpa.yaml
+  - serviceaccount.yaml
+  - analysis-template.yaml    # added — AnalysisTemplate for canary metrics + smoke test
