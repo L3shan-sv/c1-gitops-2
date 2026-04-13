@@ -1,0 +1,88 @@
+<svg width="900" height="500" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+
+  <text x="450" y="26" font-size="14" font-weight="500" fill="#2C2C2A" text-anchor="middle">Security layers — defence in depth</text>
+
+  <!-- Layer labels left -->
+  <text x="14" y="82" font-size="10" fill="#888780" transform="rotate(-90,14,82)" text-anchor="middle">perimeter</text>
+  <text x="14" y="162" font-size="10" fill="#888780" transform="rotate(-90,14,162)" text-anchor="middle">identity</text>
+  <text x="14" y="252" font-size="10" fill="#888780" transform="rotate(-90,14,252)" text-anchor="middle">supply chain</text>
+  <text x="14" y="342" font-size="10" fill="#888780" transform="rotate(-90,14,342)" text-anchor="middle">runtime</text>
+  <text x="14" y="432" font-size="10" fill="#888780" transform="rotate(-90,14,432)" text-anchor="middle">infra</text>
+
+  <!-- Layer 1: Perimeter -->
+  <rect x="30" y="44" width="840" height="76" rx="8" fill="#E6F1FB" stroke="#85B7EB" stroke-width="0.5"/>
+  <rect x="50" y="56" width="186" height="52" rx="6" fill="#B5D4F4" stroke="#378ADD" stroke-width="0.5"/>
+  <text x="143" y="78" font-size="11" font-weight="500" fill="#042C53" text-anchor="middle">ALB + TLS (ACM)</text>
+  <text x="143" y="94" font-size="10" fill="#0C447C" text-anchor="middle">HTTPS only · HTTP→HTTPS redirect</text>
+  <rect x="254" y="56" width="186" height="52" rx="6" fill="#B5D4F4" stroke="#378ADD" stroke-width="0.5"/>
+  <text x="347" y="78" font-size="11" font-weight="500" fill="#042C53" text-anchor="middle">VPC security groups</text>
+  <text x="347" y="94" font-size="10" fill="#0C447C" text-anchor="middle">ALB: 443 inbound only</text>
+  <rect x="458" y="56" width="186" height="52" rx="6" fill="#B5D4F4" stroke="#378ADD" stroke-width="0.5"/>
+  <text x="551" y="78" font-size="11" font-weight="500" fill="#042C53" text-anchor="middle">NetworkPolicy (prod)</text>
+  <text x="551" y="94" font-size="10" fill="#0C447C" text-anchor="middle">pod-level ingress/egress rules</text>
+  <rect x="662" y="56" width="186" height="52" rx="6" fill="#B5D4F4" stroke="#378ADD" stroke-width="0.5"/>
+  <text x="755" y="78" font-size="11" font-weight="500" fill="#042C53" text-anchor="middle">Private subnets</text>
+  <text x="755" y="94" font-size="10" fill="#0C447C" text-anchor="middle">nodes not reachable from internet</text>
+
+  <!-- Layer 2: Identity -->
+  <rect x="30" y="130" width="840" height="76" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <rect x="50" y="142" width="186" height="52" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="0.5"/>
+  <text x="143" y="164" font-size="11" font-weight="500" fill="#04342C" text-anchor="middle">IRSA (no static keys)</text>
+  <text x="143" y="180" font-size="10" fill="#085041" text-anchor="middle">STS temp tokens · auto-rotate</text>
+  <rect x="254" y="142" width="186" height="52" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="0.5"/>
+  <text x="347" y="164" font-size="11" font-weight="500" fill="#04342C" text-anchor="middle">Vault K8s auth</text>
+  <text x="347" y="180" font-size="10" fill="#085041" text-anchor="middle">SA JWT → scoped Vault token</text>
+  <rect x="458" y="142" width="186" height="52" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="0.5"/>
+  <text x="551" y="164" font-size="11" font-weight="500" fill="#04342C" text-anchor="middle">Vault sidecar injection</text>
+  <text x="551" y="180" font-size="10" fill="#085041" text-anchor="middle">secrets as files · not env vars</text>
+  <rect x="662" y="142" width="186" height="52" rx="6" fill="#9FE1CB" stroke="#1D9E75" stroke-width="0.5"/>
+  <text x="755" y="164" font-size="11" font-weight="500" fill="#04342C" text-anchor="middle">KMS auto-unseal</text>
+  <text x="755" y="180" font-size="10" fill="#085041" text-anchor="middle">Vault survives pod restarts</text>
+
+  <!-- Layer 3: Supply chain -->
+  <rect x="30" y="216" width="840" height="76" rx="8" fill="#FAECE7" stroke="#F0997B" stroke-width="0.5"/>
+  <rect x="50" y="228" width="186" height="52" rx="6" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+  <text x="143" y="250" font-size="11" font-weight="500" fill="#4A1B0C" text-anchor="middle">Cosign image signing</text>
+  <text x="143" y="266" font-size="10" fill="#712B13" text-anchor="middle">signed in CI · private key in Jenkins</text>
+  <rect x="254" y="228" width="186" height="52" rx="6" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+  <text x="347" y="250" font-size="11" font-weight="500" fill="#4A1B0C" text-anchor="middle">OPA Gatekeeper</text>
+  <text x="347" y="266" font-size="10" fill="#712B13" text-anchor="middle">admission: verify sig before schedule</text>
+  <rect x="458" y="228" width="186" height="52" rx="6" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+  <text x="551" y="250" font-size="11" font-weight="500" fill="#4A1B0C" text-anchor="middle">ECR immutable tags</text>
+  <text x="551" y="266" font-size="10" fill="#712B13" text-anchor="middle">tag cannot be overwritten</text>
+  <rect x="662" y="228" width="186" height="52" rx="6" fill="#F5C4B3" stroke="#D85A30" stroke-width="0.5"/>
+  <text x="755" y="250" font-size="11" font-weight="500" fill="#4A1B0C" text-anchor="middle">ArgoCD project whitelist</text>
+  <text x="755" y="266" font-size="10" fill="#712B13" text-anchor="middle">only approved resource types</text>
+
+  <!-- Layer 4: Runtime -->
+  <rect x="30" y="302" width="840" height="76" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <rect x="50" y="314" width="186" height="52" rx="6" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="143" y="336" font-size="11" font-weight="500" fill="#26215C" text-anchor="middle">Non-root UID 1000</text>
+  <text x="143" y="352" font-size="10" fill="#3C3489" text-anchor="middle">runAsNonRoot: true</text>
+  <rect x="254" y="314" width="186" height="52" rx="6" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="347" y="336" font-size="11" font-weight="500" fill="#26215C" text-anchor="middle">Read-only root FS</text>
+  <text x="347" y="352" font-size="10" fill="#3C3489" text-anchor="middle">readOnlyRootFilesystem: true</text>
+  <rect x="458" y="314" width="186" height="52" rx="6" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="551" y="336" font-size="11" font-weight="500" fill="#26215C" text-anchor="middle">Capabilities dropped</text>
+  <text x="551" y="352" font-size="10" fill="#3C3489" text-anchor="middle">drop: [ALL] · no new privileges</text>
+  <rect x="662" y="314" width="186" height="52" rx="6" fill="#CECBF6" stroke="#7F77DD" stroke-width="0.5"/>
+  <text x="755" y="336" font-size="11" font-weight="500" fill="#26215C" text-anchor="middle">PodDisruptionBudget</text>
+  <text x="755" y="352" font-size="10" fill="#3C3489" text-anchor="middle">minAvailable enforced all envs</text>
+
+  <!-- Layer 5: Infrastructure -->
+  <rect x="30" y="388" width="840" height="76" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <rect x="50" y="400" width="186" height="52" rx="6" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+  <text x="143" y="422" font-size="11" font-weight="500" fill="#173404" text-anchor="middle">Atlantis PR-based apply</text>
+  <text x="143" y="438" font-size="10" fill="#27500A" text-anchor="middle">no manual terraform in prod</text>
+  <rect x="254" y="400" width="186" height="52" rx="6" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+  <text x="347" y="422" font-size="11" font-weight="500" fill="#173404" text-anchor="middle">S3 state + DynamoDB lock</text>
+  <text x="347" y="438" font-size="10" fill="#27500A" text-anchor="middle">concurrent applies impossible</text>
+  <rect x="458" y="400" width="186" height="52" rx="6" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+  <text x="551" y="422" font-size="11" font-weight="500" fill="#173404" text-anchor="middle">Git-gated CD (ArgoCD)</text>
+  <text x="551" y="438" font-size="10" fill="#27500A" text-anchor="middle">no kubectl apply outside Git</text>
+  <rect x="662" y="400" width="186" height="52" rx="6" fill="#C0DD97" stroke="#639922" stroke-width="0.5"/>
+  <text x="755" y="422" font-size="11" font-weight="500" fill="#173404" text-anchor="middle">Orphan detection</text>
+  <text x="755" y="438" font-size="10" fill="#27500A" text-anchor="middle">ArgoCD alerts on out-of-band K8s</text>
+
+  <text x="450" y="482" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle">Security layers — perimeter → identity → supply chain → runtime → infrastructure</text>
+</svg>
