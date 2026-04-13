@@ -1,0 +1,101 @@
+<svg width="900" height="460" viewBox="0 0 900 460" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif,system-ui,sans-serif">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+    <marker id="arr-green" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M2 1L8 5L2 9" fill="none" stroke="#639922" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+
+  <text x="450" y="26" font-size="14" font-weight="500" fill="#2C2C2A" text-anchor="middle">Bootstrap sequence — 01-bootstrap.sh</text>
+  <text x="450" y="44" font-size="11" fill="#888780" text-anchor="middle">Run once per environment. After completion all changes go through Git.</text>
+
+  <!-- Step boxes -->
+  <!-- Step 1 -->
+  <rect x="30" y="60" width="160" height="130" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text x="110" y="80" font-size="11" font-weight="500" fill="#27500A" text-anchor="middle">1. Terraform</text>
+  <text x="110" y="98" font-size="10" fill="#3B6D11" text-anchor="middle">terraform init</text>
+  <text x="110" y="114" font-size="10" fill="#3B6D11" text-anchor="middle">terraform plan</text>
+  <text x="110" y="130" font-size="10" fill="#3B6D11" text-anchor="middle">terraform apply</text>
+  <text x="110" y="148" font-size="9" fill="#639922" text-anchor="middle">skipped for prod</text>
+  <text x="110" y="162" font-size="9" fill="#639922" text-anchor="middle">(use Atlantis PR)</text>
+  <text x="110" y="180" font-size="9" fill="#888780" text-anchor="middle">~20 min first run</text>
+
+  <!-- Step 2 -->
+  <rect x="210" y="60" width="160" height="130" rx="8" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text x="290" y="80" font-size="11" font-weight="500" fill="#27500A" text-anchor="middle">2. kubeconfig</text>
+  <text x="290" y="98" font-size="10" fill="#3B6D11" text-anchor="middle">aws eks update-</text>
+  <text x="290" y="112" font-size="10" fill="#3B6D11" text-anchor="middle">kubeconfig</text>
+  <text x="290" y="130" font-size="10" fill="#3B6D11" text-anchor="middle">wait: nodes Ready</text>
+  <text x="290" y="148" font-size="10" fill="#3B6D11" text-anchor="middle">kubectl get nodes</text>
+
+  <!-- Step 3 -->
+  <rect x="390" y="60" width="160" height="130" rx="8" fill="#E1F5EE" stroke="#5DCAA5" stroke-width="0.5"/>
+  <text x="470" y="80" font-size="11" font-weight="500" fill="#085041" text-anchor="middle">3. Vault init</text>
+  <text x="470" y="98" font-size="10" fill="#0F6E56" text-anchor="middle">vault operator init</text>
+  <text x="470" y="114" font-size="10" fill="#0F6E56" text-anchor="middle">dev: manual unseal</text>
+  <text x="470" y="130" font-size="10" fill="#0F6E56" text-anchor="middle">staging/prod: KMS</text>
+  <text x="470" y="148" font-size="10" fill="#0F6E56" text-anchor="middle">auto-unseals</text>
+  <text x="470" y="162" font-size="9" fill="#1D9E75" text-anchor="middle">save init keys to</text>
+  <text x="470" y="176" font-size="9" fill="#1D9E75" text-anchor="middle">password manager</text>
+
+  <!-- Step 4 -->
+  <rect x="570" y="60" width="160" height="130" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="650" y="80" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">4. Platform tools</text>
+  <text x="650" y="98" font-size="10" fill="#633806" text-anchor="middle">ALB controller</text>
+  <text x="650" y="114" font-size="10" fill="#633806" text-anchor="middle">OPA Gatekeeper</text>
+  <text x="650" y="130" font-size="10" fill="#633806" text-anchor="middle">k8s/policies/ applied</text>
+  <text x="650" y="146" font-size="10" fill="#633806" text-anchor="middle">Argo Rollouts</text>
+  <text x="650" y="162" font-size="10" fill="#633806" text-anchor="middle">ArgoCD (last)</text>
+
+  <!-- Step 5 -->
+  <rect x="750" y="60" width="120" height="130" rx="8" fill="#EEEDFE" stroke="#AFA9EC" stroke-width="0.5"/>
+  <text x="810" y="80" font-size="11" font-weight="500" fill="#3C3489" text-anchor="middle">5. ArgoCD</text>
+  <text x="810" y="98" font-size="10" fill="#534AB7" text-anchor="middle">git credentials</text>
+  <text x="810" y="114" font-size="10" fill="#534AB7" text-anchor="middle">apply project</text>
+  <text x="810" y="130" font-size="10" fill="#534AB7" text-anchor="middle">apply apps</text>
+  <text x="810" y="146" font-size="10" fill="#534AB7" text-anchor="middle">apply image-</text>
+  <text x="810" y="158" font-size="10" fill="#534AB7" text-anchor="middle">updater</text>
+
+  <!-- Arrows between steps -->
+  <line x1="190" y1="125" x2="208" y2="125" stroke="#888780" stroke-width="1.2" marker-end="url(#arr)"/>
+  <line x1="370" y1="125" x2="388" y2="125" stroke="#888780" stroke-width="1.2" marker-end="url(#arr)"/>
+  <line x1="550" y1="125" x2="568" y2="125" stroke="#888780" stroke-width="1.2" marker-end="url(#arr)"/>
+  <line x1="730" y1="125" x2="748" y2="125" stroke="#888780" stroke-width="1.2" marker-end="url(#arr)"/>
+
+  <!-- Install order detail -->
+  <rect x="30" y="220" width="840" height="80" rx="8" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5" stroke-dasharray="4 2"/>
+  <text x="450" y="240" font-size="11" font-weight="500" fill="#412402" text-anchor="middle">Step 4 install order is load-bearing</text>
+  <rect x="50" y="250" width="165" height="40" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="132" y="266" font-size="10" fill="#412402" text-anchor="middle">ALB Controller first</text>
+  <text x="132" y="280" font-size="9" fill="#633806" text-anchor="middle">Ingress needs it to provision ALB</text>
+  <rect x="230" y="250" width="165" height="40" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="312" y="266" font-size="10" fill="#412402" text-anchor="middle">Gatekeeper second</text>
+  <text x="312" y="280" font-size="9" fill="#633806" text-anchor="middle">webhook Ready before policies apply</text>
+  <rect x="410" y="250" width="165" height="40" rx="6" fill="#FAC775" stroke="#BA7517" stroke-width="0.5"/>
+  <text x="492" y="266" font-size="10" fill="#412402" text-anchor="middle">Rollouts third</text>
+  <text x="492" y="280" font-size="9" fill="#633806" text-anchor="middle">before ArgoCD syncs prod Rollout</text>
+  <rect x="590" y="250" width="165" height="40" rx="6" fill="#EAF3DE" stroke="#97C459" stroke-width="0.5"/>
+  <text x="672" y="266" font-size="10" fill="#27500A" text-anchor="middle">ArgoCD last</text>
+  <text x="672" y="280" font-size="9" fill="#3B6D11" text-anchor="middle">manages everything already in place</text>
+
+  <!-- Post-bootstrap checklist -->
+  <rect x="30" y="320" width="840" height="110" rx="8" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="450" y="342" font-size="11" font-weight="500" fill="#444441" text-anchor="middle">Post-bootstrap checklist</text>
+
+  <rect x="50" y="352" width="380" height="26" rx="4" fill="#FCEBEB" stroke="#F09595" stroke-width="0.5"/>
+  <text x="240" y="369" font-size="10" fill="#791F1F" text-anchor="middle">Move /tmp/vault-init-&lt;env&gt;.json to password manager · delete file</text>
+  <rect x="50" y="384" width="180" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="140" y="401" font-size="10" fill="#444441" text-anchor="middle">argocd app list → all Synced</text>
+  <rect x="240" y="384" width="190" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="335" y="401" font-size="10" fill="#444441" text-anchor="middle">kubectl get constraints → enforcing</text>
+  <rect x="450" y="352" width="400" height="26" rx="4" fill="#FAEEDA" stroke="#EF9F27" stroke-width="0.5"/>
+  <text x="650" y="369" font-size="10" fill="#412402" text-anchor="middle">Update cosign-constraint.yaml with real public key + ECR prefix</text>
+  <rect x="450" y="384" width="190" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="545" y="401" font-size="10" fill="#444441" text-anchor="middle">Set individual ArgoCD accounts</text>
+  <rect x="650" y="384" width="200" height="26" rx="4" fill="#F1EFE8" stroke="#B4B2A9" stroke-width="0.5"/>
+  <text x="750" y="401" font-size="10" fill="#444441" text-anchor="middle">Verify Grafana DORA dashboard</text>
+
+  <text x="450" y="446" font-size="12" font-weight="500" fill="#5F5E5A" text-anchor="middle">Bootstrap sequence — 5 phases, idempotent, run once per environment</text>
+</svg>
