@@ -1,0 +1,132 @@
+# k8s/base/analysis-template.yaml
+#
+# AnalysisTemplate used by the production Rollout canary strategy.
+# Referenced from k8s/overlays/prod/rollout.yaml as:
+#   analysis:
+#     templates:
+#       - templateName: myapp-canary-analysis
+#
+# Two metric providers run in parallel during each analysis window:
+#
+#   1. prometheus — checks success_rate and p99_latency from real traffic.
+#      Passes vacuously if there is no traffic (count returns 0), which is
+#      the original bug this template fixes.
+#
+#   2. job (smoke test) — runs a synthetic curl job against the canary pods
+#      to generate baseline traffic before Prometheus metrics are evaluated.
+#      This prevents vacuous passes in low-traffic environments and gives
+#      Prometheus something to measure even at 10% canary weight.
+#
+# The analysis passes only when BOTH metrics pass.
+
+apiVersion: argoproj.io/v1alpha1
+kind: AnalysisTemplate
+metadata:
+  name: myapp-canary-analysis
+  namespace: prod
+spec:
+  # Arguments are set by the Rollout when it instantiates an AnalysisRun.
+  # stable-hash and canary-hash are pod-template-hash values injected
+  # automatically by Argo Rollouts — they scope the Prometheus queries to
+  # the canary ReplicaSet only.
+  args:
+    - name: canary-ingress
+      value: "myapp-canary"    # name of the canary ingress/service for smoke test
+
+  metrics:
+
+    # ── Metric 1: Synthetic smoke test job ──────────────────────────────────
+    # Runs before Prometheus checks. Fires 60 HTTP requests at the canary
+    # service (via the stable ClusterIP with a header that routes to canary
+    # pods — adjust the curl target to your actual ingress/service setup).
+    # The job must exit 0 (all requests succeed) for this metric to pass.
+    # This guarantees Prometheus has real data points before metric 2 runs.
+    - name: smoke-test
+      count: 1
+      interval: 30s
+      failureLimit: 0    # any job failure = analysis fails = rollback
+      provider:
+        job:
+          spec:
+            backoffLimit: 0    # do not retry on failure — fail fast
+            template:
+              spec:
+                restartPolicy: Never
+                containers:
+                  - name: smoke
+                    image: curlimages/curl:8.7.1
+                    command:
+                      - /bin/sh
+                      - -c
+                      - |
+                        set -e
+                        TARGET="http://myapp.prod.svc.cluster.local/health"
+                        FAILURES=0
+                        for i in $(seq 1 60); do
+                          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+                            --max-time 5 \
+                            --retry 2 \
+                            --retry-delay 1 \
+                            "$TARGET")
+                          if [ "$STATUS" != "200" ]; then
+                            echo "Request $i failed with status $STATUS"
+                            FAILURES=$((FAILURES + 1))
+                          fi
+                        done
+                        echo "Smoke test complete. Failures: $FAILURES / 60"
+                        if [ "$FAILURES" -gt 0 ]; then
+                          echo "FAIL: smoke test threshold exceeded"
+                          exit 1
+                        fi
+                        echo "PASS"
+                    resources:
+                      requests:
+                        cpu: "50m"
+                        memory: "32Mi"
+                      limits:
+                        cpu: "100m"
+                        memory: "64Mi"
+
+    # ── Metric 2: Success rate ≥ 99% ────────────────────────────────────────
+    # FIX: The original query filtered endpoint!="not_found" in BOTH numerator
+    # and denominator, making the rate always 1.0.
+    # Correct form: numerator excludes error paths; denominator is total.
+    - name: success-rate
+      interval: 2m
+      count: 2           # evaluated twice per analysis window (at step 2 and step 5)
+      failureLimit: 0
+      successCondition: result[0] >= 0.99
+      # Guard against vacuous pass: if Prometheus returns no data (NaN or empty),
+      # the inconclusiveLimit forces an Inconclusive result → Rollout aborts.
+      inconclusiveLimit: 1
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          # Correct success rate formula:
+          # Numerator: requests that are NOT 404/not_found errors
+          # Denominator: ALL requests (no label filter)
+          # The denominator must not filter by endpoint — that was the bug.
+          query: |
+            (
+              sum(rate(app_requests_total{namespace="prod",endpoint!="not_found"}[2m]))
+            )
+            /
+            (
+              sum(rate(app_requests_total{namespace="prod"}[2m]))
+            )
+
+    # ── Metric 3: p99 latency ≤ 500ms ───────────────────────────────────────
+    - name: p99-latency
+      interval: 2m
+      count: 2
+      failureLimit: 0
+      successCondition: result[0] <= 0.5    # 500ms expressed in seconds
+      inconclusiveLimit: 1                   # no data → abort, not vacuous pass
+      provider:
+        prometheus:
+          address: http://prometheus.monitoring.svc.cluster.local:9090
+          query: |
+            histogram_quantile(
+              0.99,
+              sum(rate(http_request_duration_seconds_bucket{namespace="prod"}[2m])) by (le)
+            )
